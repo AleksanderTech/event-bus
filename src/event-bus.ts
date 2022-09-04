@@ -4,7 +4,13 @@ import { EventType, EventValue } from './event.js';
 type EventHandler = (data?: any) => void;
 
 export class EventBus {
+    private static instance = new EventBus();
     events = new Map<string, EventHandler>();
+
+    constructor() {
+        if (EventBus.instance == null) EventBus.instance = this;
+        return EventBus.instance;
+    }
 
     on(event: EventType, subscriber: Subscriber, handler: EventHandler): void {
         this.events.set(this.key(event, subscriber), handler);
