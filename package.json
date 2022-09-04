@@ -1,0 +1,11 @@
+{
+  "name": "event-bus",
+  "version": "1.0.0",
+  "description": "Event bus",
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "typescript": "^4.8.2"
+  }
+}
