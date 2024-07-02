@@ -1,39 +1,57 @@
-import { EventSubscriber as Subscriber } from "./event-subscriber.js";
-import { EventType, EventValue } from './event.js';
+type EventHandler<T> = (data: T) => void;
 
-type EventHandler = (data?: any) => void;
+export class EventBus<
+  Subscriber extends string,
+  BusEvent extends string,
+  BusEventWithData extends Record<BusEvent, any>
+> {
+  events = new Map<string, EventHandler<any>>();
 
-export class EventBus {
-    private static instance = new EventBus();
-    events = new Map<string, EventHandler>();
+  on<BE extends BusEvent>({
+    event,
+    subscriber,
+    handler,
+  }: {
+    event: BE;
+    subscriber: Subscriber;
+    handler: EventHandler<BusEventWithData[BE]>;
+  }): void {
+    this.events.set(this.key(event, subscriber), handler);
+  }
 
-    constructor() {
-        if (EventBus.instance == null) EventBus.instance = this;
-        return EventBus.instance;
+  emit<BE extends BusEvent>({
+    event,
+    data,
+    subscribers,
+  }: {
+    event: BE;
+    data?: BusEventWithData[BE];
+    subscribers: Subscriber[];
+  }): void {
+    for (const subscriber of subscribers) {
+      if (this.events.get(this.key(event, subscriber))) {
+        this.events.get(this.key(event, subscriber))?.(data);
+      }
     }
+  }
 
-    on(event: EventType, subscriber: Subscriber, handler: EventHandler): void {
-        this.events.set(this.key(event, subscriber), handler);
-    }
+  remove(event: BusEvent, subscriber: Subscriber) {
+    this.events.delete(this.key(event, subscriber));
+  }
 
-    emit(event: EventValue, subscribers: Subscriber[]): void {
-        for (let subscriber of subscribers) {
-            let events = this.events.get(this.key(event.type, subscriber));
-            if (events) events(event.data);
-        }
-    }
+  clearAll(): void {
+    this.events.clear();
+  }
 
-    remove(event: EventType, subscriber: Subscriber) {
-        this.events.delete(this.key(event, subscriber));
+  clearAllExcept(subscribers: Subscriber[]) {
+    for (const key of [...this.events.keys()]) {
+      if (!subscribers.find((s) => key.endsWith(s))) {
+        this.events.delete(key);
+      }
     }
+  }
 
-    clearAll(): void {
-        this.events.clear();
-    }
-
-    private key(event: EventType, subscriber: Subscriber): string {
-        return `${event}/${subscriber}`;
-    }
+  private key(event: BusEvent, subscriber: Subscriber): string {
+    return `${event}/${subscriber}`;
+  }
 }
-
-export const eventBus = new EventBus();
