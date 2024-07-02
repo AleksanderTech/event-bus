@@ -8,10 +8,6 @@ Event-driven pattern that enable your components to interact with each other. Ev
 
 `npm ci`
 
-## Build
-
-`npm run build`
-
 ## Run
 
 `npm run start`
